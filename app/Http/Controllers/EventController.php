@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Carbon\Carbon;
+use Carbon\CarbonInterval;
 
 use App\Models\Event; // Importamos el modelo correcto
 
@@ -14,7 +16,7 @@ class EventController extends Controller
         $end = $request->query('end');
 
         $events = Event::whereBetween('date', [$start, $end])
-        
+
             ->get()
             ->map(function ($event) {
                 return [
@@ -46,31 +48,106 @@ class EventController extends Controller
 
     public function storeEvent(Request $request)
     {
-        //dd($request->all());
-        $validatedData = $request->validate([
-            'title' => 'required|string|max:255', // Obligatorio y debe ser un string con máximo 255 caracteres
-            'date' => 'required|date', // Obligatorio y debe ser una fecha válida
-            'start_time' => 'required|date_format:H:i', // Obligatorio, formato de hora (24 horas)
-            'end_time' => 'required|date_format:H:i|after:start_time', // Obligatorio, formato de hora y debe ser después de `start_time`
-            'place' => 'required|string|max:255', // Obligatorio, máximo 255 caracteres
-            'requested_by' => 'required|string|max:255', // Obligatorio, máximo 255 caracteres
-            'members' => 'required|integer', 
-            'reason' => 'required|string|max:500', // Obligatorio, máximo 500 caracteres
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'place' => 'required|string|max:255',
+            'requested_by' => 'required|string|max:255',
+            'members' => 'required|integer|min:1',
+            'reason' => 'required|string|max:255',
+            'recurrence_dates' => 'required|string', // Valida que sea un string
         ]);
 
-        $event = new Event();
-        $event->title = $validatedData['title'];
-        $event->date = $validatedData['date'];
-        $event->start_time = $validatedData['start_time']; // Guardar con el nuevo formato
-        $event->end_time = $validatedData['end_time'];     // Guardar con el nuevo formato
-        $event->place = $validatedData['place'];
-        $event->requested_by = $validatedData['requested_by'];
-        $event->reason = $validatedData['reason'];
-        $event->members = $validatedData['members'];
-        $event->save();
+        // Convertir el string de fechas a un array
+        $recurrenceDates = explode(', ', $validated['recurrence_dates']);
 
-        // Redirigir con un mensaje de éxito
-        return redirect()->route('dashboard')->with('success', 'El evento se ha registrado exitosamente.');
+        foreach ($recurrenceDates as $recurrenceDate) {
+            Event::create([
+                'title' => $validated['title'],
+                'date' => $recurrenceDate, // Asigna la fecha convertida
+                'start_time' => $validated['start_time'],
+                'end_time' => $validated['end_time'],
+                'place' => $validated['place'],
+                'requested_by' => $validated['requested_by'],
+                'members' => $validated['members'],
+                'reason' => $validated['reason'],
+            ]);
+        }
+
+        return redirect()->route('dashboard')->with('success', 'Eventos registrados exitosamente.');
     }
+
+    public function manageEvent(Request $request)
+    {
+        $events = Event::orderBy('id', 'asc')->paginate(10); // Paginación opcional
+        return view('events.manage', compact('events'));
+    }
+
+    public function bulkUpdate(Request $request)
+    {
+        // Validar la entrada del formulario
+        $request->validate([
+            'selected_events' => 'required|array',   // Eventos seleccionados
+            'bulk_action' => 'required|string',       // Acción seleccionada
+            'new_date' => 'nullable|date',            // Fecha nueva (solo si aplica)
+            'new_start_time' => 'nullable|date_format:H:i', // Hora de inicio nueva (solo si aplica)
+            'new_end_time' => 'nullable|date_format:H:i',   // Hora de fin nueva (solo si aplica)
+            'new_place' => 'nullable|string',          // Lugar nuevo (solo si aplica)
+            'new_members' => 'nullable|integer',      // Miembros nuevos (solo si aplica)
+            'new_reason' => 'nullable|string',         // Razón nueva (solo si aplica)
+            'new_requested_by' => 'nullable|string',   // Solicitante nuevo (solo si aplica)
+        ]);
+
+        // Procesar según la acción seleccionada
+        switch ($request->bulk_action) {
+            case 'update_date':
+                // Actualizar la fecha de los eventos seleccionados
+                Event::whereIn('id', $request->selected_events)
+                    ->update(['date' => $request->new_date]);
+                break;
+
+            case 'update_time':
+                // Actualizar las horas de inicio y fin de los eventos seleccionados
+                Event::whereIn('id', $request->selected_events)
+                    ->update([
+                        'start_time' => $request->new_start_time,
+                        'end_time' => $request->new_end_time,
+                    ]);
+                break;
+
+            case 'update_place':
+                // Actualizar el lugar de los eventos seleccionados
+                Event::whereIn('id', $request->selected_events)
+                    ->update(['place' => $request->new_place]);
+                break;
+
+            case 'update_members':
+                // Actualizar el número de miembros de los eventos seleccionados
+                Event::whereIn('id', $request->selected_events)
+                    ->update(['members' => $request->new_members]);
+                break;
+
+            case 'update_reason':
+                // Actualizar la razón de los eventos seleccionados
+                Event::whereIn('id', $request->selected_events)
+                    ->update(['reason' => $request->new_reason]);
+                break;
+
+            case 'update_requested_by':
+                // Actualizar el solicitante de los eventos seleccionados
+                Event::whereIn('id', $request->selected_events)
+                    ->update(['requested_by' => $request->new_requested_by]);
+                break;
+
+            default:
+                // Acción no válida
+                return redirect()->route('events.manage')->with('error', 'Acción no válida.');
+        }
+
+        // Redirigir con mensaje de éxito
+        return redirect()->route('events.manage')->with('success', 'Los eventos seleccionados han sido actualizados.');
+    }
+
 
 }

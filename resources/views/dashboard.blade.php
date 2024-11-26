@@ -49,10 +49,7 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 
 
     <!-- Script de inicialización del calendario -->
@@ -74,12 +71,10 @@
                     var place = info.event.extendedProps.place || 'No especificado';
                     return {
                         html: `
-                                <table class="event-table">
-                                    <tr>
-                                        <td class="event-title">${info.event.title}</td>
-                                        <td class="event-times">${formatTime(startTime)}-${formatTime(endTime)}</td>
-                                    </tr>
-                                </table>
+                                <div class="event-container">
+                                    <div class="event-title">${info.event.title}</div>
+                                    <div class="event-time">${formatTime(startTime)} - ${formatTime(endTime)}</div>
+                                </div>
                             `
                     };
 
@@ -91,7 +86,7 @@
                             const [hours, minutes] = time.split(':');
                             return `${hours}:${minutes}`;
                         }
-                        return ''; // Devuelve un valor vacío si no hay tiempo válido
+                        return 'No especificado'; // Devuelve un valor vacío si no hay tiempo válido
                     }
 
                 },
@@ -125,7 +120,7 @@
                     document.getElementById('eventDate').textContent = formattedDate;
                     document.getElementById('eventStartTime').textContent = startTime;
                     document.getElementById('eventEndTime').textContent = endTime;
-                    document.getElementById('eventMembers').textContent = info.event.extendedProps.members || 'No especificado';
+                    document.getElementById('eventMembers').textContent = info.event.extendedProps.members || 'No especificadogi';
                     document.getElementById('eventReason').textContent = info.event.extendedProps.reason || 'No especificada';
 
                     var modal = new bootstrap.Modal(document.getElementById('eventModal'));
@@ -141,35 +136,62 @@
     </script>
 
     <style>
+        .fc-daygrid-event-harness {
+            height: auto !important;
+            /* Permite que el contenedor del evento tenga altura dinámica */
+            min-height: 0 !important;
+            /* Elimina restricciones de altura mínima */
+            overflow: visible !important;
+            /* Asegura que el contenido sea visible */
+
+        }
+
+        .fc-daygrid-event {
+            border-radius: 15px !important;
+        }
+
+
+
+
+
         /* Estilo para los eventos en el calendario */
+        .event-container {
+            position: relative;
+            /* Asegura el posicionamiento dentro de la tarjeta */
+            width: 100%;
+            /* Toma todo el ancho disponible */
+            height: 100%;
+            /* Asegura que los elementos internos no desborden */
+            overflow: hidden;
+            /* Oculta cualquier contenido que salga del contenedor */
+            text-align: center;
+            /* Centra horizontalmente el contenido */
+            display: flex;
+            /* Usa Flexbox para centrar los elementos */
+            flex-direction: column;
+            /* Asegura que el título y el tiempo estén en columnas */
+            justify-content: center;
+            /* Centra el contenido verticalmente */
+            align-items: center;
+            /* Centra el contenido horizontalmente */
+        }
+
+
         .fc-event {
             white-space: normal;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 100%;
             padding: 2px;
             color: white;
         }
 
         .fc-event.event-general {
-            background-color: #;
+            background-color: #FF9999;
+            border-color: lightcoral;
+            over
             /* Azul claro */
         }
 
-        .fc-event.event-important {
-            background-color: #F5A623;
-            /* Naranja */
-        }
-
-        .fc-event.event-urgent {
-            background-color: #D0021B;
-            /* Rojo */
-        }
-
-        .fc-event.event-completed {
-            background-color: #7ED321;
-            /* Verde */
-        }
 
         .fc-day {
             background-color: #F9F9F9;
@@ -183,63 +205,41 @@
             justify-content: space-between;
             /* Espaciar elementos a los extremos */
             align-items: center;
-            /* Alinear verticalmente al centro */
-            white-space: nowrap;
-            /* Evitar que el contenido se divida en varias líneas */
-            overflow: hidden;
-            /* Ocultar contenido que exceda */
             text-overflow: ellipsis;
-            /* Mostrar "..." si es demasiado largo */
         }
 
-        /* Título del evento */
-        /* Estilo general de la tabla */
-        .event-table {
-            width: 100%;
-            /* Ocupa todo el ancho del evento */
-            border-collapse: collapse;
-            /* Quita los bordes internos */
-            table-layout: fixed;
-            /* Asegura que las columnas tengan un ancho fijo */
-        }
 
-        /* Estilo de las celdas */
-        .event-table td {
-            padding: 2px 5px;
-            /* Espaciado interno */
-            vertical-align: middle;
-            /* Centrar verticalmente */
-            white-space: nowrap;
-            /* Evitar el salto de línea */
-            overflow: hidden;
-            /* Ocultar contenido extra */
-            text-overflow: ellipsis;
-            /* Mostrar "..." si el texto excede */
-        }
-
-        /* Columna de título */
-        .event-table .event-title {
-            text-align: left;
-            /* Alinear texto a la izquierda */
+        .event-title {
             font-weight: bold;
-            /* Negrita */
+            white-space: nowrap;
+            /* Evita que el texto se divida en varias líneas */
+            overflow: hidden;
+            /* Oculta el texto que excede el tamaño del contenedor */
+            text-overflow: ellipsis;
+            /* Muestra los puntos suspensivos al final del texto */
+            width: 100%;
+            /* Asegura que el comportamiento se aplique dentro del contenedor */
+            text-align: center;
+            /* Centra horizontalmente el texto */
+        }
+
+
+        .event-general {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Centra verticalmente */
+            align-items: center;
+            /* Centra horizontalmente */
+            height: 100%;
+            /* Asegura que ocupe todo el espacio del evento */
+            text-align: center;
+            color: white;
             font-size: 12px;
-            /* Tamaño de texto */
-            color: white;
-            /* Color del texto */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-
-        /* Columna de horario */
-        .event-table .event-times {
-            text-align: right;
-            /* Alinear texto a la derecha */
-            font-size: 11px;
-            /* Tamaño de texto */
-            color: white;
-            /* Color del texto */
-        }
-
-
 
         /* Cambiar color de los números de los días */
         .fc-daygrid-day-number {
@@ -263,6 +263,7 @@
             color: #000000;
             text-decoration: none;
             font-weight: bold;
+
         }
 
         .fc-col-header-cell-cushion {
@@ -284,15 +285,10 @@
             /* Centrar el calendario */
         }
 
-        .fc-day-today {
-            background-color: #FFCCCC;
-            /* Rojo claro */
-            border: 1px solid #FF9999;
-            /* Borde opcional para destacar más */
-        }
+
 
         /* Cambiar el color del texto del número del día actual (si es necesario) */
-        
+
 
         /* Centrar los números de los días en el calendario */
         .fc-daygrid-day-number {
@@ -305,6 +301,32 @@
             font-size: 14px;
             color: #000000;
             text-align: center;
+        }
+
+        .fc-daygrid-event {
+            border-radius: 8px !important;
+            /* Bordes redondeados */
+            transition: transform 0.2s ease, background-color 0.2s ease;
+            /* Animación suave */
+        }
+
+
+        .fc-daygrid-event:hover {
+            transform: scale(1.05);
+            /* Aumenta ligeramente el tamaño del evento */
+            background-color: pink;
+            /* Cambia el color de fondo al hacer hover */
+            cursor: pointer;
+            /* Cambia el cursor a una mano para indicar clickeable */
+            color: #fff;
+            /* Cambia el color del texto si es necesario */
+        }
+
+        .fc-day-today {
+            background-color: #FFCCCC;
+            /* Rojo claro */
+            border: 1px solid #FF9999;
+            /* Borde opcional para destacar más */
         }
     </style>
 

@@ -33,6 +33,9 @@
                         <x-dropdown-link :href="route('events.register')">
                             {{ __('Registrar Evento') }}
                         </x-dropdown-link>
+                        <x-dropdown-link :href="route('events.manage')">
+                            {{ __('Gestionar Eventos') }}
+                        </x-dropdown-link>
                     </x-slot>
                 </x-dropdown>
             </div>

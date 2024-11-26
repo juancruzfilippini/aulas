@@ -34,3 +34,11 @@ require __DIR__.'/auth.php';
 Route::get('/create-event', [EventController::class, 'createEvent'])->name('events.register');
 
 Route::post('/events', [EventController::class, 'storeEvent'])->name('events.store');
+
+Route::get('/manage-event', [EventController::class, 'manageEvent'])->name('events.manage');
+
+Route::get('/asd', [EventController::class, 'asd'])->name('events.asd');
+Route::get('/events/{id}', [EventController::class, 'show'])->name('events.show');
+Route::get('/events/{id}/edit', [EventController::class, 'edit'])->name('events.edit');
+
+Route::post('/events/bulk-update', [EventController::class, 'bulkUpdate'])->name('events.bulkUpdate');

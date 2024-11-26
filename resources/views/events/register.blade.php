@@ -39,26 +39,40 @@
                                 </div>
 
                                 <div class="flex flex-wrap gap-4 mb-4 mt-3">
-
-                                    <div class="flex-1 space-y-2">
-                                        <label for="date" class="block text-sm font-medium text-gray-700">Fecha
-                                            del evento</label>
-                                        <input type="date" id="date" name="date" required
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                    <!-- Input de fechas con botón limpiar -->
+                                    <div id="recurrence_options" class="flex flex-1 items-end gap-2">
+                                        <div class="flex-1">
+                                            <label for="recurrence_dates"
+                                                class="block text-sm font-medium text-gray-700">
+                                                Fechas de repetición
+                                            </label>
+                                            <input type="text" id="recurrence_dates" name="recurrence_dates"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                                placeholder="Selecciona las fechas" required>
+                                        </div>
+                                        <button type="button" id="clear_recurrence_dates"
+                                            class="mt-6 bg-red-500 text-white px-2 py-2 rounded hover:bg-red-600 transition h-10 mt-auto">
+                                            Limpiar
+                                        </button>
                                     </div>
-                                    <div class="flex-1 space-y-2">
+
+                                    <!-- Input de hora de inicio -->
+                                    <div class="space-y-2">
                                         <label for="start_time" class="block text-sm font-medium text-gray-700">Hora
                                             inicio</label>
                                         <input type="time" id="start_time" name="start_time" required
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                     </div>
-                                    <div class="flex-1 space-y-2">
+
+                                    <!-- Input de hora de fin -->
+                                    <div class="space-y-2">
                                         <label for="end_time" class="block text-sm font-medium text-gray-700">Hora
                                             fin</label>
                                         <input type="time" id="end_time" name="end_time" required
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                     </div>
                                 </div>
+
 
 
                                 <div class="space-y-6 mb-4">
@@ -99,7 +113,7 @@
                                         style="background-color: #2563eb; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; transition: background-color 0.3s;"
                                         onmouseover="this.style.backgroundColor='#1d4ed8'"
                                         onmouseout="this.style.backgroundColor='#2563eb'">
-                                        Registrar Personal
+                                        Registrar Evento
                                     </button>
                                 </div>
                             </form>
@@ -110,3 +124,29 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    // Inicializar Flatpickr y guardar su instancia
+    let flatpickrInstance = flatpickr("#recurrence_dates", {
+        locale: 'es',
+        mode: 'multiple', // Selección de varias fechas
+        dateFormat: 'Y-m-d', // Formato de fecha
+    });
+
+    // Botón para reiniciar el calendario
+    document.getElementById("clear_recurrence_dates").addEventListener("click", function () {
+        // Destruir la instancia de Flatpickr
+        flatpickrInstance.destroy();
+
+        // Limpiar el campo de texto
+        document.getElementById("recurrence_dates").value = "";
+
+        // Volver a inicializar Flatpickr
+        flatpickrInstance = flatpickr("#recurrence_dates", {
+            locale: 'es',
+            mode: 'multiple', // Selección de varias fechas
+            dateFormat: 'd-m-Y', // Formato de fecha
+        });
+    });
+
+</script>

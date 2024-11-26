@@ -21,6 +21,9 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->string('requested_by');
+            $table->boolean('is_recurring')->default(false);
+            $table->string('recurrence_frequency')->nullable();
+            $table->date('recurrence_end_date')->nullable();
             $table->timestamps();
         });
     }
