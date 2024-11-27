@@ -1,14 +1,14 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Calendario') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-9xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+            <div class="bg-white shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
                     <div id="calendar"></div>
                 </div>
             </div>
@@ -35,10 +35,13 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <!-- Botón para redirigir a la vista de edición -->
+                    <a href="#" id="editEventButton" class="btn btn-primary">Editar Evento</a>
                 </div>
             </div>
         </div>
     </div>
+
 
 
     <!-- Estilos de FullCalendar -->
@@ -130,6 +133,19 @@
             calendar.render();
         });
 
+        document.addEventListener('DOMContentLoaded', function () {
+            const eventModal = document.getElementById('eventModal');
+            eventModal.addEventListener('show.bs.modal', function (event) {
+                // Obtén los datos del evento desde el botón o algún lugar
+                const button = event.relatedTarget; // Botón que activó el modal
+                const eventId = button.getAttribute('data-event-id'); // ID del evento
+
+                // Configura el enlace del botón de edición
+                const editButton = document.getElementById('editEventButton');
+                editButton.href = `/events/${eventId}/edit`; // Ruta de Laravel para editar
+            });
+        });
+        
 
 
 
@@ -186,8 +202,8 @@
         }
 
         .fc-event.event-general {
-            background-color: #FF9999;
-            border-color: lightcoral;
+            background-color: #2C3E50;
+            border-color: #1E2B37;
             over
             /* Azul claro */
         }
@@ -314,7 +330,7 @@
         .fc-daygrid-event:hover {
             transform: scale(1.05);
             /* Aumenta ligeramente el tamaño del evento */
-            background-color: pink;
+            background-color: #76818D;
             /* Cambia el color de fondo al hacer hover */
             cursor: pointer;
             /* Cambia el cursor a una mano para indicar clickeable */
@@ -323,10 +339,8 @@
         }
 
         .fc-day-today {
-            background-color: #FFCCCC;
+            background-color: #FFFADF;
             /* Rojo claro */
-            border: 1px solid #FF9999;
-            /* Borde opcional para destacar más */
         }
     </style>
 

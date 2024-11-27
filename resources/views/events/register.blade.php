@@ -26,7 +26,7 @@
                                 </div>
                             @endif
 
-                            <form action="{{ route('events.store') }}" method="POST" class="space-y-8">
+                            <form action="{{ route('events.storeEvent') }}" method="POST" class="space-y-8">
                                 @csrf
 
                                 <div class="space-y-6">
@@ -80,8 +80,17 @@
                                         <div class="space-y-2 flex-1">
                                             <label for="place"
                                                 class="block text-sm font-medium text-gray-700">Espacio</label>
-                                            <input type="text" id="place" name="place" required
+                                            <select type="text" id="place" name="place" required
                                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                                <option value="" disabled selected>Seleccione un lugar</option>
+                                                @foreach ($places as $place)
+                                                    <option value="{{ $place->id }}" data-capacity="{{ $place->capacity }}">
+                                                        {{ $place->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            <p id="capacity-warning" class="mt-2 text-sm text-red-600"
+                                                style="display: none;"></p>
                                         </div>
                                         <div class="space-y-2 flex-1">
                                             <label for="requested_by"
@@ -117,6 +126,17 @@
                                     </button>
                                 </div>
                             </form>
+                            <div id="events-card" class="mt-6 hidden bg-gray-100 p-4 rounded-lg shadow-md">
+                                <h3 class="text-lg font-semibold mb-3">Eventos Programados</h3>
+                                <ul id="events-list" class="space-y-2">
+                                    <!-- Aquí se llenarán los eventos -->
+                                </ul>
+                            </div>
+
+                            <div id="events-container" class="flex flex-wrap gap-4">
+                                <!-- Las tarjetas de eventos se generan aquí dinámicamente -->
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -126,6 +146,9 @@
 </x-app-layout>
 
 <script>
+
+    const events = @json($events);
+
     // Inicializar Flatpickr y guardar su instancia
     let flatpickrInstance = flatpickr("#recurrence_dates", {
         locale: 'es',
@@ -145,8 +168,161 @@
         flatpickrInstance = flatpickr("#recurrence_dates", {
             locale: 'es',
             mode: 'multiple', // Selección de varias fechas
-            dateFormat: 'd-m-Y', // Formato de fecha
+            dateFormat: 'Y-m-d', // Formato de fecha
         });
     });
 
+    document.addEventListener('DOMContentLoaded', function () {
+        const placeSelect = document.getElementById('place');
+        const capacityWarning = document.getElementById('capacity-warning');
+
+        placeSelect.addEventListener('change', function () {
+            const selectedOption = placeSelect.options[placeSelect.selectedIndex];
+            const capacity = selectedOption.getAttribute('data-capacity');
+
+            if (capacity) {
+                capacityWarning.textContent = `Capacidad: ${capacity} personas.`;
+                capacityWarning.style.display = 'block';
+            } else {
+                capacityWarning.style.display = 'none';
+            }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const recurrenceDatesInput = document.getElementById('recurrence_dates');
+        const eventsContainer = document.getElementById('events-container');
+        const clearRecurrenceDatesButton = document.getElementById('clear_recurrence_dates');
+
+        // Lista de días de la semana
+        const daysOfWeek = [
+             'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
+        ];
+
+        // Función para filtrar eventos por una fecha específica
+        function filterEventsByDate(date) {
+            return events.filter(event => event.date === date);
+        }
+
+        // Función para formatear la fecha como "día de la semana dd/mm/yyyy"
+        function formatDateWithDay(dateString) {
+            const date = new Date(dateString);
+
+            if (isNaN(date)) {
+                throw new Error(`Fecha inválida: ${dateString}`);
+            }
+
+            const dayOfWeek = daysOfWeek[date.getDay()];
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
+            const year = date.getFullYear();
+
+            return `${dayOfWeek} ${day}/${month}/${year}`;
+        }
+
+        // Función para crear una tarjeta de eventos para una fecha específica
+        function createEventCard(date, eventsForDate) {
+            const card = document.createElement('div');
+            card.className = 'w-60 bg-gray-800 text-white p-4 rounded shadow-md';
+
+            const header = document.createElement('h3');
+            header.className = 'text-center font-bold text-lg mb-2';
+            header.textContent = formatDateWithDay(date); // Formatear fecha
+            card.appendChild(header);
+
+            const ul = document.createElement('ul');
+            ul.className = 'space-y-2';
+
+            if (eventsForDate.length > 0) {
+                eventsForDate.forEach(event => {
+                    const li = document.createElement('li');
+                    li.className = 'p-2 bg-blue-600 rounded text-center shadow-sm';
+                    li.innerHTML = `<strong>${event.title}</strong><br>${event.start_time} - ${event.end_time}`;
+                    ul.appendChild(li);
+                });
+            } else {
+                const noEvents = document.createElement('li');
+                noEvents.className = 'text-center text-gray-400';
+                noEvents.textContent = 'No hay eventos.';
+                ul.appendChild(noEvents);
+            }
+
+            card.appendChild(ul);
+            return card;
+        }
+
+        // Función para mostrar eventos para múltiples fechas seleccionadas
+        function updateEventsView(selectedDates) {
+            eventsContainer.innerHTML = '';
+
+            selectedDates.forEach(date => {
+                if (!date.trim()) return;
+
+                try {
+                    const formattedDate = new Date(date).toISOString().split('T')[0];
+                    const eventsForDate = filterEventsByDate(formattedDate);
+
+                    const card = createEventCard(formattedDate, eventsForDate);
+                    eventsContainer.appendChild(card);
+                } catch (error) {
+                    console.error(`Fecha inválida: ${date}`, error);
+                }
+            });
+        }
+
+        // Evento para manejar el cambio en la selección de fechas
+        recurrenceDatesInput.addEventListener('change', function () {
+            const selectedDates = this.value.split(',');
+
+            if (selectedDates.length > 0) {
+                updateEventsView(selectedDates);
+            } else {
+                eventsContainer.innerHTML = '';
+            }
+        });
+
+        // Evento para manejar el clic en el botón de limpiar
+        clearRecurrenceDatesButton.addEventListener('click', function () {
+            recurrenceDatesInput.value = '';
+            eventsContainer.innerHTML = '';
+        });
+    });
+
+
+
+
+
 </script>
+
+<style>
+    #events-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: flex-start;
+    }
+
+    .w-60 {
+        width: 15rem;
+    }
+
+    .bg-gray-800 {
+        background-color: #2d3748;
+    }
+
+    .bg-blue-600 {
+        background-color: #3182ce;
+    }
+
+    .shadow-md {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .shadow-sm {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .space-y-2>*+* {
+        margin-top: 0.5rem;
+    }
+</style>

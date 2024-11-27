@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Carbon\CarbonInterval;
 
 use App\Models\Event; // Importamos el modelo correcto
+use App\Models\Places; // Importamos el modelo correcto
 
 class EventController extends Controller
 {
@@ -42,8 +43,10 @@ class EventController extends Controller
     public function createEvent()
     {
         $today = date('Y-m-d');
-
-        return view('events.register', compact('today'));
+        $places = Places::all();
+        $events = Event::all();
+        //dd($events);
+        return view('events.register', compact('today', 'places', 'events'));
     }
 
     public function storeEvent(Request $request)
@@ -148,6 +151,7 @@ class EventController extends Controller
         // Redirigir con mensaje de éxito
         return redirect()->route('events.manage')->with('success', 'Los eventos seleccionados han sido actualizados.');
     }
+
 
 
 }
