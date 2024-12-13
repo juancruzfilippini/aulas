@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\EventReportController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Places; // Importamos el modelo correcto
 
 /*
 |--------------------------------------------------------------------------
@@ -37,7 +39,15 @@ Route::post('/events', [EventController::class, 'storeEvent'])->name('events.sto
 
 Route::get('/manage-event', [EventController::class, 'manageEvent'])->name('events.manage');
 
-Route::get('/events/{id}/edit', [EventController::class, 'edit'])->name('events.edit');
+Route::get('/events/{id}/update', [EventController::class, 'update'])->name('events.update');
 
 Route::post('/events/bulk-update', [EventController::class, 'bulkUpdate'])->name('events.bulkUpdate');
+
+Route::get('/events/report', [EventReportController::class, 'generateReport'])->name('events.report');
+
+Route::get('/events/generate-report', [EventReportController::class, 'reportView'])->name('report.view');
+
+Route::get('/events/edit/{id}', [EventController::class, 'edit'])->name('events.edit'); 
+
+Route::put('/eventos/{id}', [EventController::class, 'update'])->name('eventos.update');
 

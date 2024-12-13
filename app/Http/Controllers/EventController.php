@@ -16,21 +16,22 @@ class EventController extends Controller
         $start = $request->query('start');
         $end = $request->query('end');
 
-        $events = Event::whereBetween('date', [$start, $end])
-
+        $events = Event::whereNull('deleted_at') // Excluir eventos borrados lógicamente
+            ->whereBetween('date', [$start, $end])
             ->get()
             ->map(function ($event) {
                 return [
+                    'id' => $event->id,
                     'title' => $event->title,
                     'requested_by' => $event->requested_by,
-                    'members' => $event->members,
-                    'place' => $event->place,
+                    'place' => is_numeric($event->place)
+                        ? Places::getNameById($event->place)
+                        : $event->place,
                     'date' => $event->date, // En formato YYYY-MM-DD
                     'start' => $event->date . 'T' . $event->start_time, // Formato ISO para FullCalendar
                     'end' => $event->date . 'T' . $event->end_time,
                     'start_time' => $event->start_time, // Enviamos el horario tal como está en la base
                     'end_time' => $event->end_time,
-                    'reason' => $event->reason,
                 ];
             });
 
@@ -40,118 +41,161 @@ class EventController extends Controller
 
 
 
+
     public function createEvent()
     {
         $today = date('Y-m-d');
         $places = Places::all();
-        $events = Event::all();
-        //dd($events);
+        $events = Event::whereNull('deleted_at')->get();
+
+        // Modificar los eventos para obtener el nombre del lugar
+        foreach ($events as $event) {
+            if (is_numeric($event->place)) {
+                $event->place = Places::getNameById($event->place) ?? 'No especificado';
+            }
+        }
+
         return view('events.register', compact('today', 'places', 'events'));
     }
+
+
 
     public function storeEvent(Request $request)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'start_time' => 'required',
-            'end_time' => 'required',
+            'end_time' => 'required|after:start_time',
             'place' => 'required|string|max:255',
             'requested_by' => 'required|string|max:255',
-            'members' => 'required|integer|min:1',
-            'reason' => 'required|string|max:255',
-            'recurrence_dates' => 'required|string', // Valida que sea un string
+            'recurrence_dates' => 'required|string', // Cadena de fechas separadas por coma
         ]);
 
-        // Convertir el string de fechas a un array
         $recurrenceDates = explode(', ', $validated['recurrence_dates']);
 
         foreach ($recurrenceDates as $recurrenceDate) {
+            $conflict = Event::where('date', $recurrenceDate)
+                ->where('place', $validated['place'])
+                ->where(function ($query) use ($validated) {
+                    $query->whereBetween('start_time', [$validated['start_time'], $validated['end_time']])
+                        ->orWhereBetween('end_time', [$validated['start_time'], $validated['end_time']])
+                        ->orWhereRaw('? BETWEEN start_time AND end_time', [$validated['start_time']])
+                        ->orWhereRaw('? BETWEEN start_time AND end_time', [$validated['end_time']]);
+                })
+                ->exists();
+
+            if ($conflict) {
+                return redirect()->back()
+                    ->withErrors(['error' => "Conflicto detectado en la fecha $recurrenceDate para el lugar seleccionado."])
+                    ->with('error', "Conflicto detectado en la fecha $recurrenceDate para el lugar seleccionado.")
+                    ->withInput(); // Retorna los datos ingresados previamente
+            }
+
             Event::create([
                 'title' => $validated['title'],
-                'date' => $recurrenceDate, // Asigna la fecha convertida
+                'date' => $recurrenceDate,
                 'start_time' => $validated['start_time'],
                 'end_time' => $validated['end_time'],
                 'place' => $validated['place'],
                 'requested_by' => $validated['requested_by'],
-                'members' => $validated['members'],
-                'reason' => $validated['reason'],
             ]);
         }
 
         return redirect()->route('dashboard')->with('success', 'Eventos registrados exitosamente.');
     }
 
+
+
     public function manageEvent(Request $request)
     {
-        $events = Event::orderBy('id', 'asc')->paginate(10); // Paginación opcional
-        return view('events.manage', compact('events'));
+        $month = $request->input('month', now()->month); // Obtiene el mes del request o usa el mes actual
+        $year = $request->input('year', now()->year);   // Obtiene el año del request o usa el año actual
+
+        // Filtrar eventos por mes, año y que no estén borrados lógicamente
+        $events = Event::whereMonth('date', $month)
+            ->whereYear('date', $year)
+            ->whereNull('deleted_at') // Excluir eventos borrados lógicamente
+            ->paginate(100);
+
+        return view('events.manage', compact('events', 'month', 'year'));
     }
+
 
     public function bulkUpdate(Request $request)
     {
-        // Validar la entrada del formulario
+        // Validar que haya eventos seleccionados
         $request->validate([
-            'selected_events' => 'required|array',   // Eventos seleccionados
-            'bulk_action' => 'required|string',       // Acción seleccionada
-            'new_date' => 'nullable|date',            // Fecha nueva (solo si aplica)
-            'new_start_time' => 'nullable|date_format:H:i', // Hora de inicio nueva (solo si aplica)
-            'new_end_time' => 'nullable|date_format:H:i',   // Hora de fin nueva (solo si aplica)
-            'new_place' => 'nullable|string',          // Lugar nuevo (solo si aplica)
-            'new_members' => 'nullable|integer',      // Miembros nuevos (solo si aplica)
-            'new_reason' => 'nullable|string',         // Razón nueva (solo si aplica)
-            'new_requested_by' => 'nullable|string',   // Solicitante nuevo (solo si aplica)
+            'selected_events' => 'required|array', // Validar que se envíen eventos seleccionados
         ]);
 
-        // Procesar según la acción seleccionada
-        switch ($request->bulk_action) {
-            case 'update_date':
-                // Actualizar la fecha de los eventos seleccionados
-                Event::whereIn('id', $request->selected_events)
-                    ->update(['date' => $request->new_date]);
-                break;
+        // Realizar el borrado lógico de los eventos seleccionados
+        Event::whereIn('id', $request->selected_events)
+            ->update(['deleted_at' => now()]);
 
-            case 'update_time':
-                // Actualizar las horas de inicio y fin de los eventos seleccionados
-                Event::whereIn('id', $request->selected_events)
-                    ->update([
-                        'start_time' => $request->new_start_time,
-                        'end_time' => $request->new_end_time,
-                    ]);
-                break;
-
-            case 'update_place':
-                // Actualizar el lugar de los eventos seleccionados
-                Event::whereIn('id', $request->selected_events)
-                    ->update(['place' => $request->new_place]);
-                break;
-
-            case 'update_members':
-                // Actualizar el número de miembros de los eventos seleccionados
-                Event::whereIn('id', $request->selected_events)
-                    ->update(['members' => $request->new_members]);
-                break;
-
-            case 'update_reason':
-                // Actualizar la razón de los eventos seleccionados
-                Event::whereIn('id', $request->selected_events)
-                    ->update(['reason' => $request->new_reason]);
-                break;
-
-            case 'update_requested_by':
-                // Actualizar el solicitante de los eventos seleccionados
-                Event::whereIn('id', $request->selected_events)
-                    ->update(['requested_by' => $request->new_requested_by]);
-                break;
-
-            default:
-                // Acción no válida
-                return redirect()->route('events.manage')->with('error', 'Acción no válida.');
-        }
-
-        // Redirigir con mensaje de éxito
-        return redirect()->route('events.manage')->with('success', 'Los eventos seleccionados han sido actualizados.');
+        return redirect()->route('events.manage')->with('success', 'Los eventos seleccionados han sido eliminados correctamente.');
     }
 
+    public function update(Request $request, $id)
+{
+    // Buscar el evento existente
+    $event = Event::findOrFail($id);
+
+    // Validar los datos ingresados
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'requested_by' => 'required|string|max:255',
+        'place' => 'required|integer',
+        'date' => 'required|date',
+        'start_time' => 'required',
+        'end_time' => 'required|after:start_time',
+    ]);
+
+    // Verificar conflictos con otros eventos
+    $conflictingEvent = Event::where('id', '!=', $id) // Excluir el evento actual
+        ->where('place', $request->place)
+        ->where('date', $request->date)
+        ->where(function ($query) use ($request) {
+            $query->whereBetween('start_time', [$request->start_time, $request->end_time])
+                  ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
+                  ->orWhere(function ($q) use ($request) {
+                      $q->where('start_time', '<=', $request->start_time)
+                        ->where('end_time', '>=', $request->end_time);
+                  });
+        })
+        ->first();
+
+    // Si hay un conflicto, redirigir con un error
+    if ($conflictingEvent) {
+        return redirect()->back()->withErrors([
+            'conflict' => 'Ya existe otro evento programado en este lugar, fecha y horario.',
+        ])->withInput();
+    }
+
+    // Actualizar los datos del evento
+    $event->update($request->all());
+
+    // Redirigir con un mensaje de éxito
+    return redirect()->route('dashboard')->with('success', 'Evento actualizado con éxito.');
+}
+
+
+
+    public function filterByMonth(Request $request)
+    {
+        return view('events.manage', compact('events', 'month', 'year'));
+    }
+
+    public function edit($id)
+    {
+        //dd($id);
+        $event = Event::findOrFail($id);
+        $events = Event::whereNull('deleted_at')->get();
+        // Cargar datos adicionales necesarios para la edición
+        $places = Places::all(); // Ejemplo de relación para los lugares disponibles
+
+        // Retornar la vista con los datos necesarios
+        return view('events.edit', compact('event', 'places', 'events'));
+    }
 
 
 }

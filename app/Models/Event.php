@@ -13,5 +13,5 @@ class Event extends Model
 
     protected $table = 'event'; // Nombre de la tabla en la base de datos
 
-    protected $fillable = ['title', 'reason', 'place', 'date', 'start_time', 'end_time', 'requested_by', 'members', 'is_recurring', 'recurrence_frequency', 'recurrence_end_date'];
+    protected $fillable = ['id', 'title', 'place', 'date', 'start_time', 'end_time', 'requested_by', 'is_recurring', 'recurrence_frequency', 'recurrence_end_date'];
 }

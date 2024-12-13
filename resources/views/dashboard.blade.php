@@ -1,12 +1,17 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Calendario') }}
-        </h2>
-    </x-slot>
-
     <div class="py-12">
         <div class="max-w-9xl mx-auto sm:px-6 lg:px-8">
+            @if (session('success'))
+                <div class="alert alert-success">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div class="alert alert-danger">
+                    {{ session('error') }}
+                </div>
+            @endif
             <div class="bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div id="calendar"></div>
@@ -15,32 +20,66 @@
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="eventModalLabel">Detalles del Evento</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal fade animate__animated animate__fadeInDown" id="eventModal" tabindex="-1"
+        aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header text-white" style="background: #475e75">
+                    <h5 class="modal-title" id="eventModalLabel">
+                        <input type="hidden" id="eventId">
+                        <i class="fa-solid fa-calendar-check me-2"></i> Detalles del Evento
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>Título:</strong> <span id="eventTitle"></span></p>
-                    <p><strong>Solicitado por:</strong> <span id="eventRequestedBy"></span></p>
-                    <p><strong>Lugar:</strong> <span id="eventPlace"></span></p>
-                    <p><strong>Fecha:</strong> <span id="eventDate"></span></p>
-                    <p><strong>Hora de inicio:</strong> <span id="eventStartTime"></span></p>
-                    <p><strong>Hora de fin:</strong> <span id="eventEndTime"></span></p>
-                    <p><strong>Participantes:</strong> <span id="eventMembers"></span></p>
-                    <p><strong>Razón:</strong> <span id="eventReason"></span></p>
+                    <div class="container">
+                        <!-- Contenido del modal -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong><i class="fa-solid fa-heading me-2"></i>Título:</strong> <span
+                                        id="eventTitle"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong><i class="fa-solid fa-user me-2"></i>Solicitado por:</strong> <span
+                                        id="eventRequestedBy"></span></p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong><i class="fa-solid fa-map-marker-alt me-2"></i>Lugar:</strong> <span
+                                        id="eventPlace"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong><i class="fa-solid fa-calendar-day me-2"></i>Fecha:</strong> <span
+                                        id="eventDate"></span></p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong><i class="fa-solid fa-clock me-2"></i>Hora de inicio:</strong> <span
+                                        id="eventStartTime"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong><i class="fa-solid fa-clock me-2"></i>Hora de fin:</strong> <span
+                                        id="eventEndTime"></span></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <!-- Botón para redirigir a la vista de edición -->
-                    <a href="#" id="editEventButton" class="btn btn-primary">Editar Evento</a>
+                    <a href="#" id="editEventButton" class="btn btn-primary"
+                        data-route="{{ route('events.edit', ':id') }}">
+                        <i class="fa-solid fa-edit me-2"></i>Editar Evento
+                    </a>
+
                 </div>
             </div>
         </div>
     </div>
+
+
 
 
 
@@ -51,12 +90,60 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
 
-    <!-- Bootstrap CSS -->
-
-
-
-    <!-- Script de inicialización del calendario -->
     <script>
+        // Supongamos que la URL base para editar es '/events/edit/'
+        document.addEventListener('DOMContentLoaded', () => {
+            const editEventButton = document.getElementById('editEventButton');
+            const eventIdInput = document.getElementById('eventId');
+
+            document.getElementById('eventModal').addEventListener('show.bs.modal', function () {
+                const eventId = eventIdInput.value; // Obtener el ID del evento
+                const routeTemplate = editEventButton.dataset.route; // Obtener la plantilla de la ruta
+
+                if (eventId) {
+                    // Reemplazar ":id" con el valor real del evento
+                    const editUrl = routeTemplate.replace(':id', eventId);
+                    editEventButton.href = editUrl;
+                } else {
+                    console.error('No se encontró el ID del evento.');
+                    editEventButton.href = '#'; // Evitar URLs inválidas
+                }
+            });
+        });
+
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const modalHeader = document.getElementById('modalHeader');
+            const eventPlace = document.getElementById('eventPlace');
+
+            // Función para actualizar el color del encabezado del modal
+            function updateHeaderColor() {
+                const place = eventPlace.textContent.trim().toLowerCase();
+
+                var modalHeader = document.querySelector('#eventModal .modal-header');
+
+                if (modalHeader) {
+                    if (place === 'auditorio') {
+                        // Cambia el color para eventos en el auditorio
+                        modalHeader.style.backgroundColor = '#ad1a1a';
+                    } else {
+                        // Mantén el color predeterminado para otros lugares
+                        modalHeader.style.backgroundColor = '#475e75';
+                    }
+                } else {
+                    console.error('El elemento modalHeader no se encontró en el DOM.');
+                }
+
+            }
+
+            // Llama esta función cada vez que se abre el modal
+            const modal = document.getElementById('eventModal');
+            modal.addEventListener('show.bs.modal', updateHeaderColor);
+        });
+
+
         document.addEventListener('DOMContentLoaded', function () {
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -69,6 +156,8 @@
                 },
                 events: '/aulas/public/api/events',
                 eventContent: function (info) {
+                    //console.log(info.event.extendedProps.place);
+
                     var startTime = info.event.extendedProps.start_time || 'No especificado';
                     var endTime = info.event.extendedProps.end_time || 'No especificado';
                     var place = info.event.extendedProps.place || 'No especificado';
@@ -76,6 +165,7 @@
                         html: `
                                 <div class="event-container">
                                     <div class="event-title">${info.event.title}</div>
+                                    <div class="event-place" style="text-decoration: underline;">${place}</div>
                                     <div class="event-time">${formatTime(startTime)} - ${formatTime(endTime)}</div>
                                 </div>
                             `
@@ -83,7 +173,6 @@
 
                     // Función para formatear el tiempo
                     function formatTime(time) {
-                        console.log(info.event);
                         if (time && typeof time === 'string') {
                             // Divide la cadena en partes y retorna solo HH:mm
                             const [hours, minutes] = time.split(':');
@@ -95,6 +184,14 @@
                 },
 
                 eventClassNames: function (info) {
+                    // Verifica si el lugar es "auditorio" (5)ç
+                    //console.log(info.event.extendedProps.place);
+
+                    if (info.event.extendedProps.place === 'AUDITORIO') {
+                        return ['event-auditorio']; // Clase específica para eventos en el auditorio
+
+                    }
+
                     // Cambia el color según el tipo de evento
                     switch (info.event.extendedProps.event_type) {
                         case 'important':
@@ -107,6 +204,7 @@
                             return ['event-general'];
                     }
                 },
+
                 eventClick: function (info) {
                     var date = new Date(info.event.start);
                     var formattedDate = new Intl.DateTimeFormat('es-ES', {
@@ -123,29 +221,28 @@
                     document.getElementById('eventDate').textContent = formattedDate;
                     document.getElementById('eventStartTime').textContent = startTime;
                     document.getElementById('eventEndTime').textContent = endTime;
-                    document.getElementById('eventMembers').textContent = info.event.extendedProps.members || 'No especificadogi';
-                    document.getElementById('eventReason').textContent = info.event.extendedProps.reason || 'No especificada';
+
+                    // Almacena el ID del evento en el campo oculto
+                    document.getElementById('eventId').value = info.event.id;
+
+                    // Cambiar el color de fondo del encabezado del modal
+                    var modalHeader = document.querySelector('#eventModal .modal-header');
+                    if (info.event.extendedProps.place === 'AUDITORIO') {
+                        modalHeader.style.background = '#ad1a1a';
+                    } else {
+                        modalHeader.style.background = '#475e75';
+                    }
 
                     var modal = new bootstrap.Modal(document.getElementById('eventModal'));
                     modal.show();
                 }
+
+
             });
             calendar.render();
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const eventModal = document.getElementById('eventModal');
-            eventModal.addEventListener('show.bs.modal', function (event) {
-                // Obtén los datos del evento desde el botón o algún lugar
-                const button = event.relatedTarget; // Botón que activó el modal
-                const eventId = button.getAttribute('data-event-id'); // ID del evento
 
-                // Configura el enlace del botón de edición
-                const editButton = document.getElementById('editEventButton');
-                editButton.href = `/events/${eventId}/edit`; // Ruta de Laravel para editar
-            });
-        });
-        
 
 
 
@@ -204,22 +301,17 @@
         .fc-event.event-general {
             background-color: #2C3E50;
             border-color: #1E2B37;
-            over
-            /* Azul claro */
+
         }
 
 
         .fc-day {
             background-color: #F9F9F9;
-            /* Gris claro */
         }
 
-        /* Contenedor principal del evento */
         .event-content {
             display: flex;
-            /* Usar flexbox para la alineación */
             justify-content: space-between;
-            /* Espaciar elementos a los extremos */
             align-items: center;
             text-overflow: ellipsis;
         }
@@ -228,15 +320,10 @@
         .event-title {
             font-weight: bold;
             white-space: nowrap;
-            /* Evita que el texto se divida en varias líneas */
             overflow: hidden;
-            /* Oculta el texto que excede el tamaño del contenedor */
             text-overflow: ellipsis;
-            /* Muestra los puntos suspensivos al final del texto */
             width: 100%;
-            /* Asegura que el comportamiento se aplique dentro del contenedor */
             text-align: center;
-            /* Centra horizontalmente el texto */
         }
 
 
@@ -244,11 +331,8 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            /* Centra verticalmente */
             align-items: center;
-            /* Centra horizontalmente */
             height: 100%;
-            /* Asegura que ocupe todo el espacio del evento */
             text-align: center;
             color: white;
             font-size: 12px;
@@ -257,7 +341,6 @@
             text-overflow: ellipsis;
         }
 
-        /* Cambiar color de los números de los días */
         .fc-daygrid-day-number {
             color: #000000;
             text-decoration: none;
@@ -274,7 +357,6 @@
             align-items: center;
         }
 
-        /* Cambiar color de los nombres de los días (cabecera) */
         .fc-col-header-cell {
             color: #000000;
             text-decoration: none;
@@ -284,29 +366,17 @@
 
         .fc-col-header-cell-cushion {
             color: #000000;
-            /* Negro */
             text-decoration: none;
-            /* Quitar subrayado */
             font-weight: bold;
-            /* Opcional: Hacerlos más destacados */
             text-align: center;
 
         }
 
-        /* Ajustar el ancho del contenedor del calendario */
         #calendar {
             max-width: 90%;
-            /* Cambia el ancho a un porcentaje más amplio */
-            margin: 0 auto;
-            /* Centrar el calendario */
+            margin: 0 auto
         }
 
-
-
-        /* Cambiar el color del texto del número del día actual (si es necesario) */
-
-
-        /* Centrar los números de los días en el calendario */
         .fc-daygrid-day-number {
             display: flex;
             text-decoration: none;
@@ -321,26 +391,33 @@
 
         .fc-daygrid-event {
             border-radius: 8px !important;
-            /* Bordes redondeados */
             transition: transform 0.2s ease, background-color 0.2s ease;
-            /* Animación suave */
         }
 
 
         .fc-daygrid-event:hover {
             transform: scale(1.05);
-            /* Aumenta ligeramente el tamaño del evento */
-            background-color: #76818D;
-            /* Cambia el color de fondo al hacer hover */
+            background-color: #475e75;
             cursor: pointer;
-            /* Cambia el cursor a una mano para indicar clickeable */
             color: #fff;
-            /* Cambia el color del texto si es necesario */
         }
 
         .fc-day-today {
             background-color: #FFFADF;
-            /* Rojo claro */
+        }
+
+        .event-auditorio {
+            background-color: #ad1a1a !important;
+            color: white;
+            border: none;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .event-auditorio:hover {
+            transform: scale(1.05);
+            background-color: #aa4949 !important;
+            cursor: pointer;
+            color: #fff;
         }
     </style>
 

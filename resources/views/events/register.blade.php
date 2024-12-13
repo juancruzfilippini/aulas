@@ -1,17 +1,10 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Registrar Evento') }}
-        </h2>
-    </x-slot>
+<x-app-layout> 
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="container mx-auto py-10">
+                <div class="mx-auto py-10">
                     <div class="w-full max-w-4xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
-                        <div class="px-6 py-4 bg-gray-100 border-b border-gray-200">
-                        </div>
+
                         <div class="p-6">
 
                             @if (session('success'))
@@ -26,6 +19,7 @@
                                 </div>
                             @endif
 
+
                             <form action="{{ route('events.storeEvent') }}" method="POST" class="space-y-8">
                                 @csrf
 
@@ -34,7 +28,8 @@
                                         <label for="title" class="block text-sm font-medium text-gray-700">Título del
                                             Evento</label>
                                         <input type="text" id="title" name="title" required
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                                            value="{{ old('title') }}">
                                     </div>
                                 </div>
 
@@ -60,7 +55,8 @@
                                     <div class="space-y-2">
                                         <label for="start_time" class="block text-sm font-medium text-gray-700">Hora
                                             inicio</label>
-                                        <input type="time" id="start_time" name="start_time" required
+                                        <input type="time" id="start_time" name="start_time"
+                                            value="{{ old('start_time') }}" required
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                     </div>
 
@@ -68,7 +64,8 @@
                                     <div class="space-y-2">
                                         <label for="end_time" class="block text-sm font-medium text-gray-700">Hora
                                             fin</label>
-                                        <input type="time" id="end_time" name="end_time" required
+                                        <input type="time" id="end_time" name="end_time" value="{{ old('end_time') }}"
+                                            required
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                     </div>
                                 </div>
@@ -81,6 +78,7 @@
                                             <label for="place"
                                                 class="block text-sm font-medium text-gray-700">Espacio</label>
                                             <select type="text" id="place" name="place" required
+                                                value="{{ old('place') }}"
                                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                                 <option value="" disabled selected>Seleccione un lugar</option>
                                                 @foreach ($places as $place)
@@ -96,30 +94,18 @@
                                             <label for="requested_by"
                                                 class="block text-sm font-medium text-gray-700">Solicitado por</label>
                                             <input type="text" id="requested_by" name="requested_by" required
+                                                value="{{ old('requested_by') }}"
                                                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                                         </div>
-                                        <div class="space-y-2 flex-1">
-                                            <label for="members"
-                                                class="block text-sm font-medium text-gray-700">Participantes
-                                                estimados</label>
-                                            <input type="number" id="members" name="members" required
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        </div>
+                                        
                                     </div>
 
-                                    <div class="space-y-6">
-                                        <div class="space-y-2">
-                                            <label for="reason"
-                                                class="block text-sm font-medium text-gray-700">Motivo</label>
-                                            <input type="text" id="reason" name="reason" required
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        </div>
-                                    </div>
+                                   
                                 </div>
 
                                 <div class="flex justify-end">
                                     <button type="submit" class="btn"
-                                        style="background-color: #2563eb; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; transition: background-color 0.3s;"
+                                        style="background-color: #2563eb; color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; transition: background-color 0.3s; margin-bottom: 20px"
                                         onmouseover="this.style.backgroundColor='#1d4ed8'"
                                         onmouseout="this.style.backgroundColor='#2563eb'">
                                         Registrar Evento
@@ -139,10 +125,15 @@
 
                         </div>
                     </div>
+
                 </div>
+
             </div>
-        </div>
+
+        
+
     </div>
+
 </x-app-layout>
 
 <script>
@@ -196,7 +187,7 @@
 
         // Lista de días de la semana
         const daysOfWeek = [
-             'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
+            'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'
         ];
 
         // Función para filtrar eventos por una fecha específica
@@ -206,27 +197,41 @@
 
         // Función para formatear la fecha como "día de la semana dd/mm/yyyy"
         function formatDateWithDay(dateString) {
-            const date = new Date(dateString);
+            console.log('Fecha que llega por parámetro a la función: ' + dateString);
 
-            if (isNaN(date)) {
+            // Dividir el string en componentes de fecha (año, mes, día)
+            const [year, month, day] = dateString.split('-').map(Number);
+
+            // Crear la fecha ajustando el mes (0-11 en JavaScript)
+            const date = new Date(year, month - 1, day);
+            console.log('Fecha creada manualmente: ' + date);
+
+            // Validar si la fecha es válida
+            if (isNaN(date.getTime())) {
                 throw new Error(`Fecha inválida: ${dateString}`);
             }
 
+            // Obtener el día de la semana
+            const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
             const dayOfWeek = daysOfWeek[date.getDay()];
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // Los meses van de 0 a 11
-            const year = date.getFullYear();
 
-            return `${dayOfWeek} ${day}/${month}/${year}`;
+            // Formatear los valores de día, mes y año
+            const formattedDay = String(date.getDate()).padStart(2, '0');
+            const formattedMonth = String(date.getMonth() + 1).padStart(2, '0'); // Mes ajustado
+            const formattedYear = date.getFullYear();
+
+            // Retornar la fecha formateada con día de la semana
+            return `${dayOfWeek} ${formattedDay}/${formattedMonth}/${formattedYear}`;
         }
+
 
         // Función para crear una tarjeta de eventos para una fecha específica
         function createEventCard(date, eventsForDate) {
             const card = document.createElement('div');
             card.className = 'w-60 bg-gray-800 text-white p-4 rounded shadow-md';
-
             const header = document.createElement('h3');
             header.className = 'text-center font-bold text-lg mb-2';
+
             header.textContent = formatDateWithDay(date); // Formatear fecha
             card.appendChild(header);
 
@@ -237,7 +242,7 @@
                 eventsForDate.forEach(event => {
                     const li = document.createElement('li');
                     li.className = 'p-2 bg-blue-600 rounded text-center shadow-sm';
-                    li.innerHTML = `<strong>${event.title}</strong><br>${event.start_time} - ${event.end_time}`;
+                    li.innerHTML = `<strong>${event.title}</strong><br><span style="text-decoration: underline;">${event.place}</span><br>${formatTime(event.start_time)} - ${formatTime(event.end_time)}`;
                     ul.appendChild(li);
                 });
             } else {
@@ -251,10 +256,14 @@
             return card;
         }
 
+        function formatTime(time) {
+            return time.slice(0, 5); // Extraer solo los primeros 5 caracteres (hh:mm)
+        }
+
         // Función para mostrar eventos para múltiples fechas seleccionadas
         function updateEventsView(selectedDates) {
             eventsContainer.innerHTML = '';
-
+            console.log(selectedDates);
             selectedDates.forEach(date => {
                 if (!date.trim()) return;
 
@@ -287,6 +296,52 @@
             eventsContainer.innerHTML = '';
         });
     });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+        const recurrenceDatesInput = document.getElementById("recurrence_dates");
+        const placeInput = document.getElementById("place");
+        const startTimeInput = document.getElementById("start_time");
+        const endTimeInput = document.getElementById("end_time");
+
+        form.addEventListener("submit", function (e) {
+            const selectedDates = recurrenceDatesInput.value.split(",").map(date => date.trim());
+            const selectedPlace = placeInput.value;
+            const selectedStartTime = startTimeInput.value;
+            const selectedEndTime = endTimeInput.value;
+
+            // Validación de conflictos
+            let conflict = false;
+            let conflictDetails = [];
+
+            selectedDates.forEach(date => {
+                events.forEach(event => {
+                    console.log('evento: ' + event.date);
+                    if (
+
+                        event.date === date && // Misma fecha
+                        event.place_id == selectedPlace && // Mismo lugar
+                        (
+                            (selectedStartTime >= event.start_time && selectedStartTime < event.end_time) || // Inicio en rango
+                            (selectedEndTime > event.start_time && selectedEndTime <= event.end_time) || // Fin en rango
+                            (selectedStartTime <= event.start_time && selectedEndTime >= event.end_time) // Abarca todo el evento
+                        )
+                    ) {
+                        conflict = true;
+                        conflictDetails.push(`Conflicto con el evento "${event.title}" en ${date}, de ${event.start_time} a ${event.end_time}`);
+                    }
+                });
+            });
+
+
+            if (conflict) {
+                e.preventDefault(); // Detener el envío del formulario
+                alert(`No se puede registrar el evento debido a conflictos:\n\n${conflictDetails.join("\n")}`);
+            }
+        });
+    });
+
+
 
 
 
