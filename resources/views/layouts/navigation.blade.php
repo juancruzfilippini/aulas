@@ -27,7 +27,7 @@
     <div class="flex items-center space-x-4">
         <!-- Generar reporte -->
         <x-nav-link :href="route('report.view')" :active="request()->routeIs('report.view')"
-            class="text-sm font-medium text-gray-700 hover:text-gray-900">
+            class="text-sm font-medium hover:text-gray-900">
             {{ __('Generar reporte') }}
         </x-nav-link>
 
