@@ -4,6 +4,13 @@
 
 
 <head>
+    <!-- Popper.js -->
+    <script src="{{ asset('js/popper.min.js') }}"></script>
+
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 
     <!-- Font Awesome -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -37,10 +44,6 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js"></script>
 
-
-
-
-
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -67,16 +70,17 @@
 </body>
 
 <style>
-  input {
-    height: 2.5rem;
-    border: 1px solid gray;
-    padding-left: 0.5rem;
-  }
-  select {
-    height: 2.5rem;
-    border: 1px solid gray;
-    padding-left: 0.5rem;
-  }
+    input {
+        height: 2.5rem;
+        border: 1px solid gray;
+        padding-left: 0.5rem;
+    }
+
+    select {
+        height: 2.5rem;
+        border: 1px solid gray;
+        padding-left: 0.5rem;
+    }
 </style>
 
 </html>
