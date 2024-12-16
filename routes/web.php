@@ -18,7 +18,7 @@ use App\Models\Places; // Importamos el modelo correcto
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::get('/dashboard', function () {
@@ -47,7 +47,7 @@ Route::get('/events/report', [EventReportController::class, 'generateReport'])->
 
 Route::get('/events/generate-report', [EventReportController::class, 'reportView'])->name('report.view');
 
-Route::get('/events/edit/{id}', [EventController::class, 'edit'])->name('events.edit'); 
+Route::get('/events/edit/{id}', [EventController::class, 'edit'])->name('events.edit');
 
 Route::put('/eventos/{id}', [EventController::class, 'update'])->name('eventos.update');
 
