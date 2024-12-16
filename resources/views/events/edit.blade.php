@@ -64,7 +64,7 @@
                         </div>
 
                         <div class="text-center">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn text-white" style="background-color: #475e75;">
                                 <i class="fa-solid fa-save me-2"></i> Guardar Cambios
                             </button>
                         </div>
@@ -74,3 +74,10 @@
         </div>
     </div>
 </x-app-layout>
+
+<SCRIpt>
+    let flatpickrInstance = flatpickr("#date", {
+        locale: 'es',
+        dateFormat: 'Y-m-d',
+    });
+</SCRIpt>

@@ -117,8 +117,14 @@ class EventController extends Controller
             ->whereNull('deleted_at') // Excluir eventos borrados lógicamente
             ->paginate(100);
 
+        // Actualiza el atributo `place` con el nombre correspondiente al ID
+        foreach ($events as $event) {
+            $event->place = Places::getNameById($event->place);
+        }
+
         return view('events.manage', compact('events', 'month', 'year'));
     }
+
 
 
     public function bulkUpdate(Request $request)
@@ -136,47 +142,47 @@ class EventController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    // Buscar el evento existente
-    $event = Event::findOrFail($id);
+    {
+        // Buscar el evento existente
+        $event = Event::findOrFail($id);
 
-    // Validar los datos ingresados
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'requested_by' => 'required|string|max:255',
-        'place' => 'required|integer',
-        'date' => 'required|date',
-        'start_time' => 'required',
-        'end_time' => 'required|after:start_time',
-    ]);
+        // Validar los datos ingresados
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'requested_by' => 'required|string|max:255',
+            'place' => 'required|integer',
+            'date' => 'required|date',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
+        ]);
 
-    // Verificar conflictos con otros eventos
-    $conflictingEvent = Event::where('id', '!=', $id) // Excluir el evento actual
-        ->where('place', $request->place)
-        ->where('date', $request->date)
-        ->where(function ($query) use ($request) {
-            $query->whereBetween('start_time', [$request->start_time, $request->end_time])
-                  ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
-                  ->orWhere(function ($q) use ($request) {
-                      $q->where('start_time', '<=', $request->start_time)
-                        ->where('end_time', '>=', $request->end_time);
-                  });
-        })
-        ->first();
+        // Verificar conflictos con otros eventos
+        $conflictingEvent = Event::where('id', '!=', $id) // Excluir el evento actual
+            ->where('place', $request->place)
+            ->where('date', $request->date)
+            ->where(function ($query) use ($request) {
+                $query->whereBetween('start_time', [$request->start_time, $request->end_time])
+                    ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
+                    ->orWhere(function ($q) use ($request) {
+                        $q->where('start_time', '<=', $request->start_time)
+                            ->where('end_time', '>=', $request->end_time);
+                    });
+            })
+            ->first();
 
-    // Si hay un conflicto, redirigir con un error
-    if ($conflictingEvent) {
-        return redirect()->back()->withErrors([
-            'conflict' => 'Ya existe otro evento programado en este lugar, fecha y horario.',
-        ])->withInput();
+        // Si hay un conflicto, redirigir con un error
+        if ($conflictingEvent) {
+            return redirect()->back()->withErrors([
+                'conflict' => 'Ya existe otro evento programado en este lugar, fecha y horario.',
+            ])->withInput();
+        }
+
+        // Actualizar los datos del evento
+        $event->update($request->all());
+
+        // Redirigir con un mensaje de éxito
+        return redirect()->route('dashboard')->with('success', 'Evento actualizado con éxito.');
     }
-
-    // Actualizar los datos del evento
-    $event->update($request->all());
-
-    // Redirigir con un mensaje de éxito
-    return redirect()->route('dashboard')->with('success', 'Evento actualizado con éxito.');
-}
 
 
 

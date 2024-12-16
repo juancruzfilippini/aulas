@@ -2,9 +2,9 @@
     <!-- Izquierda: Logo y enlaces -->
     <div class="flex items-center space-x-8">
         <!-- Logo -->
-        <div class="flex-shrink-0"  style="margin-left: 200px;">
+        <div class="flex-shrink-0" style="margin-left: 200px;">
             <a href="{{ route('dashboard') }}">
-                <img src="https://github.com/juancruzfilippini/logo-presupuestos/blob/main/icono_proyeccion.png?raw=true"
+                <img src="https://github.com/juancruzfilippini/logo-presupuestos/blob/main/20241210_132650__1_-removebg-preview.png?raw=true"
                     alt="Logo de Aulas" class="block h-9 w-auto">
             </a>
         </div>
