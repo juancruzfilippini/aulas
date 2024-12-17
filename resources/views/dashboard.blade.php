@@ -68,16 +68,18 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <a href="#" id="editEventButton" class="btn btn-primary"
+                    <a href="#" id="editEventButton" class="btn text-white" style="background: #475e75"
                         data-route="{{ route('events.edit', ':id') }}">
                         <i class="fa-solid fa-edit me-2"></i>Editar Evento
                     </a>
-
+                    <button type="button" id="deleteEventButton" class="btn text-white" style="background: #ad1a1a">
+                        <i class="fa-solid fa-trash me-2"></i>Eliminar Evento
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
 
 
 
@@ -91,6 +93,58 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
 
     <script>
+        document.getElementById('deleteEventButton').addEventListener('click', function () {
+            const eventId = document.getElementById('eventId').value;
+            const deleteRoute = "{{ route('events.destroy', ':id') }}".replace(':id', eventId);
+
+            Swal.fire({
+                title: '¿Está seguro?',
+                text: "¡No podrá recuperar este evento!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Enviar solicitud de eliminación
+                    fetch(deleteRoute, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire(
+                                    '¡Eliminado!',
+                                    'El evento ha sido eliminado.',
+                                    'success'
+                                ).then(() => {
+                                    // Cerrar el modal y refrescar la página
+                                    $('#eventModal').modal('hide');
+                                    location.reload();
+                                });
+                            } else {
+                                $('#eventModal').modal('hide');
+                                    location.reload();
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire(
+                                'Error',
+                                'Hubo un problema al intentar eliminar el evento.',
+                                'error'
+                            );
+                        });
+                }
+            });
+        });
+
+
+
         // Supongamos que la URL base para editar es '/events/edit/'
         document.addEventListener('DOMContentLoaded', () => {
             const editEventButton = document.getElementById('editEventButton');

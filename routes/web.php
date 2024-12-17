@@ -51,3 +51,5 @@ Route::get('/events/edit/{id}', [EventController::class, 'edit'])->name('events.
 
 Route::put('/eventos/{id}', [EventController::class, 'update'])->name('eventos.update');
 
+Route::delete('/events/{id}', [EventController::class, 'destroy'])->name('events.destroy');
+

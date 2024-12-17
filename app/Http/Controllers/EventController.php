@@ -204,4 +204,12 @@ class EventController extends Controller
     }
 
 
+    public function destroy($id)
+    {
+        Event::where('id', $id)
+            ->update(['deleted_at' => now()]);
+
+        return redirect()->route('dashboard')->with('success', 'Evento eliminado correctamente.');
+    }
+
 }

@@ -22,7 +22,6 @@ return new class extends Migration {
             ['id' => 2, 'name' => 'AULA 2', 'capacity' => 27],
             ['id' => 4, 'name' => 'AULA VIRTUAL', 'capacity' => 50],
             ['id' => 5, 'name' => 'AUDITORIO', 'capacity' => 199],
-            ['id' => 6, 'name' => 'AULA FUNDACIÓN', 'capacity' => 27],
             ['id' => 7, 'name' => 'AULA DE SIMULACION', 'capacity' => 100],
             ['id' => 8, 'name' => 'CAMARA GESELL', 'capacity' => 50],
             ['id' => 9, 'name' => 'HAB11-A.SIMUL.ENF.', 'capacity' => 25],
