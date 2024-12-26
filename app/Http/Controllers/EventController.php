@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Carbon\CarbonInterval;
+use App\Mail\NewEventNotification;
+use Illuminate\Support\Facades\Mail;
 
 use App\Models\Event; // Importamos el modelo correcto
 use App\Models\Places; // Importamos el modelo correcto
@@ -91,7 +93,7 @@ class EventController extends Controller
                     ->withInput(); // Retorna los datos ingresados previamente
             }
 
-            Event::create([
+            $event = Event::create([
                 'title' => $validated['title'],
                 'date' => $recurrenceDate,
                 'start_time' => $validated['start_time'],
@@ -99,6 +101,9 @@ class EventController extends Controller
                 'place' => $validated['place'],
                 'requested_by' => $validated['requested_by'],
             ]);
+
+            // Enviar correo
+            Mail::to('juancruzfilippini@gmail.com')->send(new NewEventNotification($event->toArray()));
         }
 
         return redirect()->route('dashboard')->with('success', 'Eventos registrados exitosamente.');
