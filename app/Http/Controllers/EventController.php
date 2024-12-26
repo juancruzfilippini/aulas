@@ -103,7 +103,11 @@ class EventController extends Controller
             ]);
 
             // Enviar correo
-            Mail::to('juancruzfilippini@gmail.com')->send(new NewEventNotification($event->toArray()));
+            Mail::to('juancruzfilippini@gmail.com')
+                ->cc(['dn.an.navarro@gmail.com', 'academica@hospital.uncu.edu.ar', 'nicolena.andrioli@hospital.uncu.edu.ar'])
+                ->send(new NewEventNotification($event->toArray()));
+
+
         }
 
         return redirect()->route('dashboard')->with('success', 'Eventos registrados exitosamente.');
