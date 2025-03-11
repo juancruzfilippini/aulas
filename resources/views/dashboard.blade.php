@@ -246,6 +246,10 @@
                         return ['event-auditorio']; // Clase específica para eventos en el auditorio
 
                     }
+                    if (info.event.extendedProps.place === 'ZOOM') {
+                        return ['event-zoom']; // Clase específica para eventos en zoom
+
+                    }
 
                     // Cambia el color según el tipo de evento
                     switch (info.event.extendedProps.event_type) {
@@ -471,6 +475,19 @@
         .event-auditorio:hover {
             transform: scale(1.05);
             background-color: #aa4949 !important;
+            cursor: pointer;
+            color: #fff;
+        }
+        .event-zoom {
+            background-color: #218937 !important;
+            color: white;
+            border: none;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .event-zoom:hover {
+            transform: scale(1.05);
+            background-color: #0f5b20 !important;
             cursor: pointer;
             color: #fff;
         }
