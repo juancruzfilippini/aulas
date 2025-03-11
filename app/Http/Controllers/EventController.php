@@ -168,6 +168,7 @@ class EventController extends Controller
         $conflictingEvent = Event::where('id', '!=', $id) // Excluir el evento actual
             ->where('place', $request->place)
             ->where('date', $request->date)
+            ->whereNull('deleted_at') // Solo considerar eventos NO eliminados  
             ->where(function ($query) use ($request) {
                 $query->whereBetween('start_time', [$request->start_time, $request->end_time])
                     ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
