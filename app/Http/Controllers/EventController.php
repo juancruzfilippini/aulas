@@ -78,6 +78,7 @@ class EventController extends Controller
         foreach ($recurrenceDates as $recurrenceDate) {
             $conflict = Event::where('date', $recurrenceDate)
                 ->where('place', $validated['place'])
+                ->whereNull('deleted_at') // Solo considerar eventos NO eliminados  
                 ->where(function ($query) use ($validated) {
                     $query->whereBetween('start_time', [$validated['start_time'], $validated['end_time']])
                         ->orWhereBetween('end_time', [$validated['start_time'], $validated['end_time']])
@@ -104,7 +105,6 @@ class EventController extends Controller
 
             // Enviar correo
             Mail::to('juancruzfilippini@gmail.com')
-                ->cc(['dn.an.navarro@gmail.com', 'academica@hospital.uncu.edu.ar', 'nicolena.andrioli@hospital.uncu.edu.ar'])
                 ->send(new NewEventNotification($event->toArray()));
 
 
